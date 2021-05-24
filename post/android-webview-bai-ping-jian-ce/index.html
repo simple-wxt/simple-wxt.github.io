@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>搜索结果 | 小菜鸡</title>
+<title>Android WebView白屏检测 | 小菜鸡</title>
 <meta name="description" content="曾经想仗剑天涯，后来Bug多没去" />
 <link rel="shortcut icon" href="https://simple-wxt.github.io/favicon.ico">
 <link rel="stylesheet" href="https://simple-wxt.github.io/styles/main.css">
@@ -14,16 +14,17 @@
 <script src="https://simple-wxt.github.io/media/js/view-image.min.js"></script>
 <script src="https://simple-wxt.github.io/media/js/jquery.magnific-popup.min.js"></script>
 <script src="https://simple-wxt.github.io/media/js/functions.js"></script>
-    <script src="/media/gridea-search/fuse.js"></script>
-    <script src="/media/gridea-search/ejs.min.js"></script>
-    <script src="/media/gridea-search/gridea-search.js"></script>
-    <script src="/media/gridea-search/result-template.ejs" type="text/ejs"></script>
-</head>
+    <meta name="referrer" content="never">
+    <meta name="description" content="提供webview的白屏检测功能
 
+在项目中经常会使用到WebView来加载网页。需要增加WebView的白屏检测来监控质量。
+样例代码 只提供检测功能
+过程简述：逐行扫描法，首先获取一个WebView的bitmap，然后取(0,0)坐标的..." />
+    <meta name="keywords" content="Android,WebView" />
+    <script src="https://simple-wxt.github.io/media/js/waterfall.min.js"></script>
+    <script src="https://simple-wxt.github.io/media/js/prism.min.js"></script>
+  </head>
   <body>
-    <!-- start: #wrapper -->
-    <div class="wrapper">
-      
             <header id="header" class="grid-container">
         <!-- start: .menu-wrapper -->
         <div class="menu-mobile"> 
@@ -90,22 +91,150 @@
         </div>
       </div>
 
-      <main id="home" class="main fullcover no-sidebar content">
-        <div class="grid-container module-wrapper enable-masonry aos-init aos-animate" data-aos="fade-up">
-        <div class="epcl-page-wrapper">
-          <div class="left-content grid-70 np-mobile widget_epcl_related_articles">
-          <div class="main-article post">
-            <div id="gridea-search-result">
-              <h2 class="searching">搜索中......</h2>
-              <h2 class="no-result" style="display:none">未搜索到相关文章</h2>
+      <main id="single" class="main grid-container fullcover no-sidebar aos-init aos-animate" data-aos="fade">
+
+        <div class="center content">
+          <div class="featured-image cover" style="background-image: url('/media/images/gridea.jpg');">
+            <div class="meta top"> 
+              <time class="meta-info" style="float:left;" datetime="2021-05-24"><i class="fa fa-calendar"></i><span class="lately">33 分钟前</span></time>
+              
+              <a href="https://simple-wxt.github.io/post/android-webview-bai-ping-jian-ce/#comments" class="comments meta-info" title="">
+                <i class="fa fa-comment remixicon"></i><span class="comment-count valine-comment-count" data-xid="/android-webview-bai-ping-jian-ce/"> </span>
+              </a>
+              <span id="/android-webview-bai-ping-jian-ce/" class="leancloud_visitors views-counter meta-info" title=""><i class="fa fa-leancloud remixicon"></i><span class="leancloud-visitors-count"></span></span>
+              
+            </div>
+            <div class="info">
+              <div class="tags ">
+                
+                      <a href="https://simple-wxt.github.io/tag/9TPwBmbMs/" class="ctag ctag-0 ctag-9TPwBmbMs" aria-label="">Android</a>
+                    
+                      <a href="https://simple-wxt.github.io/tag/pR1LVhXVub/" class="ctag ctag-1 ctag-pR1LVhXVub" aria-label="">WebView</a>
+                    
+              </div>
+              <h1 class="title ularge white bold">Android WebView白屏检测</h1>
             </div>
           </div>
+        </div>  
+
+        <div class="epcl-page-wrapper">
+          <div class="left-content grid-70 np-mobile">
+            <article class="main-article post">
+              <section class="post-content">
+                <div class="text">
+                  <p>提供webview的白屏检测功能</p>
+<!-- more -->
+<p>在项目中经常会使用到WebView来加载网页。需要增加WebView的白屏检测来监控质量。</p>
+<p>样例代码 <strong>只提供检测功能</strong><br>
+过程简述：逐行扫描法，首先获取一个WebView的bitmap，然后取(0,0)坐标的像素。创建一个等于bitmap宽度的数组，填充满这个像素值，然后逐行遍历，一但有不相等的，则认为非白屏</p>
+<pre><code>/**
+* 白屏
+*/
+private const val BLANK_SCREEN = 1
+/**
+* 非白屏
+*/
+private const val NORMAL_SCREEN = 2
+/**
+* 白屏检测遇到异常
+*/
+private const val DETECT_FAIL = 3
+
+fun isWebViewBlank(webView: WebView?): Int {
+    if(webView == null){
+        retrun DETECT_FAIL
+    }
+    if(Looper.myLooper() != Looper.getMainLooper()){
+        return DETECT_FAIL
+    }
+    val oldValue = webView.isDrawingCacheEnable
+    try{
+        if(!oldValue){
+            webView.isDrawingCacheEnable = true
+        }
+        //获取webview当前显示在屏幕上部分的截图
+        val tmpMap = webView.drawingCache
+        //检测bitmap是否白屏
+        val detector = PixBlankDetector()
+        return if (detector.doDetect(tmpMap)) BLANK_SCREEN else NORMAL_SCREEN
+    } catch(e: Throwable){
+        return DETECT_FAIL
+    }finally{
+        if(!oldValue){
+            webView.isDrawingCacheEnable = false
+        }
+    }
+}
+</code></pre>
+<p>接下来的白屏检测的核心类PixBlankDetector</p>
+<pre><code>class PixBlankDetector {
+
+    fun doDetect(bitmap: Bitmap?): Boolean {
+        if(bitmap == null){
+            return true
+        }
+        val width = bitmap.width
+        val height = bitmap.height
+        if(width &gt; 0 &amp;&amp; height &gt; 0){
+            val originPix = bitmap.getPixel(0,0)
+            val target = IntArray(width)
+            Arrays.fill(target,originPix)
+            val source = IntArray(width)
+            var isWhiteScreen = true
+            for(col in 0 until height){
+                bitmap.getPixels(source,0,width,0,col,width,1)
+                if(!Arrays.equals(target,source)){
+                    isWhiteScreen = false
+                    break
+                }
+            }
+            return isWhiteScreen
+        }
+        return false
+    }
+}
+</code></pre>
+
+                </div>
+                <div class="clear"></div>
+              </section>
+            </article>
+            <div class="clear"></div>
+
+            <section class="related section">
+              
+              
+              <article class="next grid-50 tablet-grid-50 grid-parent">
+                <div class="thumb cover lazy loaded" style="background-image: url('https://simple-wxt.github.io/post-images/hello-gridea.png');"></div>
+                 <a href="https://simple-wxt.github.io/post/hello-gridea/" class="full-link"></a>
+                 <div class="info">
+                  <time datetime="2018-12-12">2018-12-12</time>
+                  <h4 class="title white no-margin">Hello Gridea</h4>
+                </div>
+                 <span class="epcl-button red">
+                  <img src="https://simple-wxt.github.io/media/images/right-arrow.svg" width="15" alt="Left Arrow">
+                </span>
+                <div class="overlay"></div>
+              </article>
+              
+
+                <div class="clear"></div>
+            </section>
+
+              <div class="clear"></div>
+              
+            
+              <div id="comments" class="bg-white hosted ">
+                <p>请到客户端“主题--自定义配置--valine”中填入ID和KEY</p>
+              </div>
+              <div class="clear"></div>
+            
+
+            </div>
           </div>
-        </div>
-        </div>
       </main>
 
-        <footer id="footer" class="grid-container">
+          <footer id="footer" class="grid-container">
         <div class="widgets row gradient-effect">
             <div class="default-sidebar border-effect">
               <div class="grid-33 tablet-grid-50 mobile-grid-100">
@@ -225,6 +354,9 @@
     <div class="clear"></div>
 
         
+
+      
+    <script src="https://simple-wxt.github.io/media/js/functions-post.js"></script>
 
     </div>
     <!-- end: #wrapper -->

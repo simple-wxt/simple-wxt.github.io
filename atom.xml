@@ -1,15 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://simple-wxt.github.io</id>
-    <title>Gridea</title>
-    <updated>2021-04-30T09:48:39.100Z</updated>
+    <title>小菜鸡</title>
+    <updated>2021-05-24T06:00:36.019Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://simple-wxt.github.io"/>
     <link rel="self" href="https://simple-wxt.github.io/atom.xml"/>
-    <subtitle>温故而知新</subtitle>
+    <subtitle>曾经想仗剑天涯，后来Bug多没去</subtitle>
     <logo>https://simple-wxt.github.io/images/avatar.png</logo>
     <icon>https://simple-wxt.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2021, Gridea</rights>
+    <rights>All rights reserved 2021, 小菜鸡</rights>
+    <entry>
+        <title type="html"><![CDATA[Android WebView白屏检测]]></title>
+        <id>https://simple-wxt.github.io/post/android-webview-bai-ping-jian-ce/</id>
+        <link href="https://simple-wxt.github.io/post/android-webview-bai-ping-jian-ce/">
+        </link>
+        <updated>2021-05-24T05:27:26.000Z</updated>
+        <summary type="html"><![CDATA[<p>提供webview的白屏检测功能</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>提供webview的白屏检测功能</p>
+<!-- more -->
+<p>在项目中经常会使用到WebView来加载网页。需要增加WebView的白屏检测来监控质量。</p>
+<p>样例代码 <strong>只提供检测功能</strong><br>
+过程简述：逐行扫描法，首先获取一个WebView的bitmap，然后取(0,0)坐标的像素。创建一个等于bitmap宽度的数组，填充满这个像素值，然后逐行遍历，一但有不相等的，则认为非白屏</p>
+<pre><code>/**
+* 白屏
+*/
+private const val BLANK_SCREEN = 1
+/**
+* 非白屏
+*/
+private const val NORMAL_SCREEN = 2
+/**
+* 白屏检测遇到异常
+*/
+private const val DETECT_FAIL = 3
+
+fun isWebViewBlank(webView: WebView?): Int {
+    if(webView == null){
+        retrun DETECT_FAIL
+    }
+    if(Looper.myLooper() != Looper.getMainLooper()){
+        return DETECT_FAIL
+    }
+    val oldValue = webView.isDrawingCacheEnable
+    try{
+        if(!oldValue){
+            webView.isDrawingCacheEnable = true
+        }
+        //获取webview当前显示在屏幕上部分的截图
+        val tmpMap = webView.drawingCache
+        //检测bitmap是否白屏
+        val detector = PixBlankDetector()
+        return if (detector.doDetect(tmpMap)) BLANK_SCREEN else NORMAL_SCREEN
+    } catch(e: Throwable){
+        return DETECT_FAIL
+    }finally{
+        if(!oldValue){
+            webView.isDrawingCacheEnable = false
+        }
+    }
+}
+</code></pre>
+<p>接下来的白屏检测的核心类PixBlankDetector</p>
+<pre><code>class PixBlankDetector {
+
+    fun doDetect(bitmap: Bitmap?): Boolean {
+        if(bitmap == null){
+            return true
+        }
+        val width = bitmap.width
+        val height = bitmap.height
+        if(width &gt; 0 &amp;&amp; height &gt; 0){
+            val originPix = bitmap.getPixel(0,0)
+            val target = IntArray(width)
+            Arrays.fill(target,originPix)
+            val source = IntArray(width)
+            var isWhiteScreen = true
+            for(col in 0 until height){
+                bitmap.getPixels(source,0,width,0,col,width,1)
+                if(!Arrays.equals(target,source)){
+                    isWhiteScreen = false
+                    break
+                }
+            }
+            return isWhiteScreen
+        }
+        return false
+    }
+}
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://simple-wxt.github.io/post/hello-gridea/</id>
